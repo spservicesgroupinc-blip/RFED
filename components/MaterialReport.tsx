@@ -14,7 +14,9 @@ export const MaterialReport: React.FC<MaterialReportProps> = ({ state, onBack })
   const [filterMonth, setFilterMonth] = useState<string>(new Date().toISOString().slice(0, 7)); // YYYY-MM
 
   const filteredLogs = useMemo(() => {
-    return (state.materialLogs || []).filter(log => log.date.startsWith(filterMonth));
+    return (state.materialLogs || [])
+        .filter(log => log.date.startsWith(filterMonth))
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [state.materialLogs, filterMonth]);
 
   const stats = useMemo(() => {
@@ -75,21 +77,21 @@ export const MaterialReport: React.FC<MaterialReportProps> = ({ state, onBack })
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between relative overflow-hidden">
                 <div>
                     <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Open Cell Used</div>
-                    <div className="text-3xl font-black text-slate-900">{stats.oc.toFixed(2)}</div>
+                    <div className="text-3xl font-black text-brand-yellow drop-shadow-sm">{stats.oc.toFixed(2)}</div>
                     <div className="text-xs text-slate-500 font-bold mt-1">Sets</div>
                 </div>
-                <div className="mt-4 bg-brand/10 p-2 rounded-lg w-fit"><Droplet className="w-5 h-5 text-brand" /></div>
+                <div className="absolute top-0 right-0 p-4 opacity-10"><Droplet className="w-16 h-16 text-brand-yellow" /></div>
             </div>
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between relative overflow-hidden">
                 <div>
                     <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Closed Cell Used</div>
                     <div className="text-3xl font-black text-slate-900">{stats.cc.toFixed(2)}</div>
                     <div className="text-xs text-slate-500 font-bold mt-1">Sets</div>
                 </div>
-                <div className="mt-4 bg-slate-100 p-2 rounded-lg w-fit"><Droplet className="w-5 h-5 text-slate-600" /></div>
+                <div className="absolute top-0 right-0 p-4 opacity-10"><Droplet className="w-16 h-16 text-slate-900" /></div>
             </div>
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Filter Period</label>
@@ -110,7 +112,7 @@ export const MaterialReport: React.FC<MaterialReportProps> = ({ state, onBack })
                 <thead className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
                     <tr>
                         <th className="px-6 py-4">Date</th>
-                        <th className="px-6 py-4">Customer</th>
+                        <th className="px-6 py-4">Customer / Job</th>
                         <th className="px-6 py-4">Material</th>
                         <th className="px-6 py-4 text-center">Qty</th>
                         <th className="px-6 py-4 text-right">Logged By</th>
@@ -120,15 +122,27 @@ export const MaterialReport: React.FC<MaterialReportProps> = ({ state, onBack })
                     {filteredLogs.length === 0 ? (
                         <tr><td colSpan={5} className="px-6 py-12 text-center text-slate-400 italic">No usage logs found for this period.</td></tr>
                     ) : (
-                        filteredLogs.map((log, idx) => (
-                            <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                                <td className="px-6 py-4 font-medium text-slate-500">{new Date(log.date).toLocaleDateString()}</td>
-                                <td className="px-6 py-4 font-bold text-slate-800">{log.customerName}</td>
-                                <td className="px-6 py-4 font-medium text-slate-700">{log.materialName}</td>
-                                <td className="px-6 py-4 font-mono font-bold text-slate-900 text-center">{log.quantity.toFixed(2)} <span className="text-[10px] text-slate-400">{log.unit}</span></td>
-                                <td className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase">{log.loggedBy}</td>
-                            </tr>
-                        ))
+                        filteredLogs.map((log, idx) => {
+                            const isOC = log.materialName.includes('Open Cell');
+                            const isCC = log.materialName.includes('Closed Cell');
+                            
+                            return (
+                                <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                                    <td className="px-6 py-4 font-medium text-slate-500">{new Date(log.date).toLocaleDateString()}</td>
+                                    <td className="px-6 py-4 font-bold text-slate-800">{log.customerName}</td>
+                                    <td className="px-6 py-4">
+                                        <span className={`text-xs font-bold px-2 py-1 rounded ${
+                                            isOC ? 'bg-amber-100 text-amber-800' : 
+                                            isCC ? 'bg-slate-200 text-slate-800' : 'text-slate-600'
+                                        }`}>
+                                            {log.materialName}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 font-mono font-bold text-slate-900 text-center">{log.quantity.toFixed(2)} <span className="text-[10px] text-slate-400">{log.unit}</span></td>
+                                    <td className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase">{log.loggedBy}</td>
+                                </tr>
+                            );
+                        })
                     )}
                 </tbody>
             </table>

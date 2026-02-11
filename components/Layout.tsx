@@ -16,8 +16,7 @@ import {
   Receipt,
   Copy,
   Download,
-  Menu,
-  HelpCircle
+  Menu
 } from 'lucide-react';
 import { UserSession } from '../types';
 
@@ -34,7 +33,6 @@ interface LayoutProps {
   onQuickAction: (action: 'new_estimate' | 'new_customer' | 'new_invoice') => void;
   installPrompt: any;
   onInstall: () => void;
-  onShowHelp?: () => void;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ 
@@ -49,8 +47,7 @@ export const Layout: React.FC<LayoutProps> = ({
   clearNotification,
   onQuickAction,
   installPrompt,
-  onInstall,
-  onShowHelp
+  onInstall
 }) => {
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
@@ -197,18 +194,6 @@ export const Layout: React.FC<LayoutProps> = ({
           
           <NavButton target="settings" icon={RefreshCw} label="Settings" />
           <NavButton target="profile" icon={User} label="Profile" />
-          
-          {/* Help & Keyboard Shortcuts */}
-          {onShowHelp && (
-            <button 
-              onClick={onShowHelp}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm mb-1 text-slate-500 hover:bg-slate-100"
-              title="Keyboard Shortcuts (Shift + ?)"
-            >
-              <HelpCircle className="w-5 h-5" />
-              <span className="hidden md:inline">Help</span>
-            </button>
-          )}
 
           {/* Install App Button Desktop */}
           {installPrompt && (
@@ -250,7 +235,7 @@ export const Layout: React.FC<LayoutProps> = ({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 min-w-0 md:p-8 p-4 overflow-x-hidden pt-6 md:pt-8 pb-24 md:pb-8">
+      <main className="flex-1 min-w-0 md:p-8 p-4 overflow-x-hidden pt-6 md:pt-8">
         {/* Mobile Header */}
         <div className="md:hidden flex items-center justify-between mb-6">
            <div className="flex items-center gap-2" onClick={() => setView('dashboard')}>
@@ -279,7 +264,7 @@ export const Layout: React.FC<LayoutProps> = ({
       </main>
 
       {/* Mobile Bottom Nav */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around p-2 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] mobile-bottom-nav">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around p-2 pb-[calc(1rem+env(safe-area-inset-bottom))] z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
          <button onClick={() => setView('dashboard')} className={`flex flex-col items-center p-2 rounded-lg flex-1 ${view === 'dashboard' ? 'text-brand' : 'text-slate-400'}`}>
            <LayoutDashboard className="w-5 h-5" />
            <span className="text-[9px] font-bold mt-1">Dash</span>

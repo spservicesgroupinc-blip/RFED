@@ -9,10 +9,12 @@ import {
   Save,
   MessageSquare,
   Plus,
-  Trash2
+  Trash2,
+  FileText
 } from 'lucide-react';
 import { CalculatorState, CalculationResults, EstimateRecord, InvoiceLineItem, FoamType } from '../types';
 import { useEstimates } from '../hooks/useEstimates';
+import { generateDocumentPDF } from '../utils/pdfGenerator';
 
 interface InvoiceStageProps {
   state: CalculatorState;
@@ -195,19 +197,19 @@ export const InvoiceStage: React.FC<InvoiceStageProps> = ({
       }
   };
 
-  const handleUpdateClick = async () => {
+  const handleFinalizeOrUpdate = async () => {
       setProcessingAction('save');
       setIsProcessing(true);
       
       // Update record with lines first
-      // We wait for the save to complete and return the fresh record
       const updatedRecord = await saveEstimate(results, 'Invoiced', {
           invoiceLines: invoiceLines,
           totalValue: invoiceTotal
-      }, false);
+      }, false); // false = do not redirect
 
       if (updatedRecord) {
-          await onConfirm(updatedRecord); // Pass fresh record to parent for PDF gen
+          // If this was a new generation, create the PDF automatically
+          await generateDocumentPDF(state, updatedRecord.results, 'INVOICE', updatedRecord);
       }
       
       setIsProcessing(false);
@@ -216,6 +218,7 @@ export const InvoiceStage: React.FC<InvoiceStageProps> = ({
 
   const invoiceNum = state.invoiceNumber || currentRecord?.invoiceNumber || "DRAFT";
   const isPaid = currentRecord?.status === 'Paid';
+  const isInvoiceGenerated = currentRecord?.status === 'Invoiced';
   const statusLabel = currentRecord?.status || 'Draft';
   const actuals = currentRecord?.actuals;
 
@@ -234,7 +237,8 @@ export const InvoiceStage: React.FC<InvoiceStageProps> = ({
                       <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">Invoice & Finalize</h1>
                       <div className="flex items-center gap-2 mt-1">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${
-                              isPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'
+                              isPaid ? 'bg-emerald-100 text-emerald-700' : 
+                              isInvoiceGenerated ? 'bg-sky-100 text-sky-700' : 'bg-slate-100 text-slate-500'
                           }`}>
                               Status: {statusLabel}
                           </span>
@@ -250,22 +254,35 @@ export const InvoiceStage: React.FC<InvoiceStageProps> = ({
                       </div>
                   ) : (
                       <>
-                        <button 
-                            onClick={handleUpdateClick}
-                            disabled={isProcessing}
-                            className="px-6 py-4 bg-white border-2 border-slate-100 hover:border-slate-300 text-slate-600 rounded-xl font-bold uppercase text-xs tracking-widest flex items-center justify-center gap-2 transition-all w-full md:w-auto"
-                        >
-                            {processingAction === 'save' ? <Loader2 className="w-4 h-4 animate-spin"/> : <Save className="w-4 h-4" />}
-                            Save Invoice
-                        </button>
-                        <button 
-                            onClick={handleMarkPaidClick}
-                            disabled={isProcessing}
-                            className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 transition-all w-full md:w-auto"
-                        >
-                            {processingAction === 'pay' ? <Loader2 className="w-5 h-5 animate-spin"/> : <CheckCircle2 className="w-5 h-5" />}
-                            Mark as Paid
-                        </button>
+                        {!isInvoiceGenerated ? (
+                            <button 
+                                onClick={handleFinalizeOrUpdate}
+                                disabled={isProcessing}
+                                className="px-8 py-4 bg-brand hover:bg-brand-hover text-white rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-red-200 transition-all w-full md:w-auto"
+                            >
+                                {processingAction === 'save' ? <Loader2 className="w-5 h-5 animate-spin"/> : <FileText className="w-5 h-5" />}
+                                Finalize & Generate Invoice
+                            </button>
+                        ) : (
+                            <>
+                                <button 
+                                    onClick={handleFinalizeOrUpdate}
+                                    disabled={isProcessing}
+                                    className="px-6 py-4 bg-white border-2 border-slate-100 hover:border-slate-300 text-slate-600 rounded-xl font-bold uppercase text-xs tracking-widest flex items-center justify-center gap-2 transition-all w-full md:w-auto"
+                                >
+                                    {processingAction === 'save' ? <Loader2 className="w-4 h-4 animate-spin"/> : <Save className="w-4 h-4" />}
+                                    Save Changes
+                                </button>
+                                <button 
+                                    onClick={handleMarkPaidClick}
+                                    disabled={isProcessing}
+                                    className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 transition-all w-full md:w-auto"
+                                >
+                                    {processingAction === 'pay' ? <Loader2 className="w-5 h-5 animate-spin"/> : <Receipt className="w-5 h-5" />}
+                                    Mark as Paid
+                                </button>
+                            </>
+                        )}
                       </>
                   )}
               </div>

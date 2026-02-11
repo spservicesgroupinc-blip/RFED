@@ -140,6 +140,28 @@ function handleSyncDown(ss, lastSyncTimestamp = 0) {
         sSheet.getDataRange().getValues().forEach(r => { if (r[0]) settings[r[0]] = safeParse(r[1]); });
     }
     
+    // Fetch Material Logs specifically (No JSON col, raw read)
+    const materialLogs = [];
+    const logSheet = ss.getSheetByName(TAB_NAMES.LOG);
+    if (logSheet && logSheet.getLastRow() > 1) {
+        // Read raw values: Date, JobId, Cust, Item, Qty, Unit, User
+        const rawLogs = logSheet.getRange(2, 1, logSheet.getLastRow() - 1, 7).getValues();
+        rawLogs.forEach((r, idx) => {
+            if (r[0]) {
+                materialLogs.push({
+                    id: `${r[1]}-${idx}`, // Composite ID
+                    date: r[0], // Date string or object
+                    jobId: r[1],
+                    customerName: r[2],
+                    materialName: r[3],
+                    quantity: Number(r[4]),
+                    unit: r[5],
+                    loggedBy: r[6]
+                });
+            }
+        });
+    }
+    
     // Construct Warehouse object
     const whCounts = settings['warehouse_counts'] || {};
     const warehouse = {
@@ -151,6 +173,7 @@ function handleSyncDown(ss, lastSyncTimestamp = 0) {
     return {
         ...settings,
         warehouse,
+        materialLogs, // NEW: Include the logs in the sync payload
         lifetimeUsage: settings['lifetime_usage'] || { openCell: 0, closedCell: 0 },
         equipment: getChanged(TAB_NAMES.EQ, COL_MAPS.EQUIPMENT.JSON),
         savedEstimates: getChanged(TAB_NAMES.EST, COL_MAPS.ESTIMATES.JSON),
@@ -222,17 +245,6 @@ function handleCompleteJob(ss, payload) {
     const actOc = Number(actuals.openCellSets || 0);
     const actCc = Number(actuals.closedCellSets || 0);
     
-    // Logic: Deduct the DIFFERENCE between Actual and Estimated if estimated was already deducted on WO creation.
-    // However, typical workflow is: Estimate doesn't deduct. WO Creation might deduct OR Completion deducts.
-    // Frontend `confirmWorkOrder` does optimistic deduction.
-    // Here we reconcile. For simplicity in this delta architecture, we assume the passed `actuals` are the final truth.
-    // To properly handle the delta from the frontend (which already deducted 'Estimated'), we should calc the diff.
-    // But since this is a stateless call relative to previous deductions, we trust the `counts` in the sheet are current.
-    
-    // Let's assume the frontend sends the *difference* or the backend logic needs to handle it.
-    // Current frontend `confirmWorkOrder` deducts `estimated`.
-    // When `completeJob` happens, we should deduct `(Actual - Estimated)`.
-    
     const estOc = Number(est.materials?.openCellSets || 0);
     const estCc = Number(est.materials?.closedCellSets || 0);
     
@@ -261,7 +273,6 @@ function handleCompleteJob(ss, payload) {
                 const r = itemMap.get(item.id);
                 const cur = safeParse(data[r-1][COL_MAPS.INVENTORY.JSON]);
                 if(cur) {
-                    // Logic: Deduct (Actual - Estimated)
                     const estItem = (est.materials?.inventory || []).find(i => i.id === item.id);
                     const estQty = Number(estItem?.quantity || 0);
                     const actQty = Number(item.quantity || 0);
