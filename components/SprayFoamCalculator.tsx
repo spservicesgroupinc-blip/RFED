@@ -27,12 +27,13 @@ import { Settings } from './Settings';
 import { Profile } from './Profile';
 import { WorkOrderStage } from './WorkOrderStage';
 import { InvoiceStage } from './InvoiceStage';
-import { EstimateStage } from './EstimateStage'; // NEW IMPORT
+import { EstimateStage } from './EstimateStage';
 import { CrewDashboard } from './CrewDashboard';
 import { MaterialOrder } from './MaterialOrder';
 import { MaterialReport } from './MaterialReport';
 import { EstimateDetail } from './EstimateDetail';
 import { EquipmentTracker } from './EquipmentTracker';
+import { NetworkStatusBanner } from './NetworkStatusBanner';
 
 const SprayFoamCalculator: React.FC = () => {
   const { state, dispatch } = useCalculator();
@@ -327,6 +328,8 @@ const SprayFoamCalculator: React.FC = () => {
   }
 
   return (
+    <>
+    <NetworkStatusBanner />
     <Layout 
       userSession={session} 
       view={ui.view} 
@@ -527,6 +530,7 @@ const SprayFoamCalculator: React.FC = () => {
             />
         )}
     </Layout>
+    </>
   );
 };
 
