@@ -391,9 +391,9 @@ const SprayFoamCalculator: React.FC = () => {
       onInstall={handleInstallApp}
       onShowHelp={() => setShowShortcutsHelp(true)}
     >
-        {/* Persistent Floating Install Icon */}
+        {/* Persistent Floating Install Icon - Hidden on mobile since it's in the nav */}
         {deferredPrompt && (
-          <div className="fixed bottom-6 right-6 z-[100] animate-in slide-in-from-bottom-10 fade-in duration-500">
+          <div className="hidden md:block fixed bottom-6 right-6 z-[100] animate-in slide-in-from-bottom-10 fade-in duration-500">
              <button 
                 onClick={handleInstallApp}
                 className="group flex items-center gap-3 bg-slate-900 text-white pl-4 pr-6 py-4 rounded-full shadow-2xl border-2 border-slate-700 hover:bg-brand hover:border-brand transition-all hover:scale-105 active:scale-95"

@@ -250,7 +250,7 @@ export const Layout: React.FC<LayoutProps> = ({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 min-w-0 md:p-8 p-4 overflow-x-hidden pt-6 md:pt-8">
+      <main className="flex-1 min-w-0 md:p-8 p-4 overflow-x-hidden pt-6 md:pt-8 pb-24 md:pb-8">
         {/* Mobile Header */}
         <div className="md:hidden flex items-center justify-between mb-6">
            <div className="flex items-center gap-2" onClick={() => setView('dashboard')}>
