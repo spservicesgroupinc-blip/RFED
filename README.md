@@ -14,7 +14,20 @@ View your app in AI Studio: https://ai.studio/apps/drive/1RKGUbXEdWmRToAl8xMss-I
 - Node.js (version 18 or higher recommended)
 - npm (comes with Node.js)
 
-### Setup Steps
+### Quick Start
+
+For a guided setup experience, simply run:
+```bash
+./start-dev.sh
+```
+
+This script will:
+- Check if Node.js is installed
+- Install dependencies if needed
+- Create `.env.local` from template if it doesn't exist
+- Start the development server
+
+### Manual Setup Steps
 
 1. **Install dependencies:**
    ```bash
