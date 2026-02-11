@@ -94,22 +94,32 @@ self.addEventListener('fetch', (event) => {
   }
 
   // 2. Handle API calls (Google Script) - Network Only (Don't cache dynamic data)
-  if (event.request.url.includes('script.google.com') || 
-      event.request.url.includes('googleapis.com')) {
-    event.respondWith(
-      fetch(event.request)
-        .catch((err) => {
-          console.log('[Service Worker] API request failed:', err);
-          return new Response(JSON.stringify({ 
-            error: 'Network error', 
-            offline: true 
-          }), {
-            status: 503,
-            headers: { 'Content-Type': 'application/json' }
-          });
-        })
-    );
-    return;
+  // Use URL parsing for more secure hostname checking
+  try {
+    const requestUrl = new URL(event.request.url);
+    const hostname = requestUrl.hostname;
+    // Check if hostname is exactly one of the Google domains or ends with them
+    if (hostname === 'script.google.com' || 
+        hostname === 'googleapis.com' ||
+        (hostname.endsWith('.google.com') && hostname.split('.google.com')[0].indexOf('.') === -1) ||
+        (hostname.endsWith('.googleapis.com') && hostname.split('.googleapis.com')[0].indexOf('.') === -1)) {
+      event.respondWith(
+        fetch(event.request)
+          .catch((err) => {
+            console.log('[Service Worker] API request failed:', err);
+            return new Response(JSON.stringify({ 
+              error: 'Network error', 
+              offline: true 
+            }), {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          })
+      );
+      return;
+    }
+  } catch (e) {
+    // Invalid URL, let it fall through to normal handling
   }
 
   // 3. Handle Assets (JS, CSS, Images) - Stale-While-Revalidate
