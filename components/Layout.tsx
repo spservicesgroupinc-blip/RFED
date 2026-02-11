@@ -16,7 +16,8 @@ import {
   Receipt,
   Copy,
   Download,
-  Menu
+  Menu,
+  HelpCircle
 } from 'lucide-react';
 import { UserSession } from '../types';
 
@@ -33,6 +34,7 @@ interface LayoutProps {
   onQuickAction: (action: 'new_estimate' | 'new_customer' | 'new_invoice') => void;
   installPrompt: any;
   onInstall: () => void;
+  onShowHelp?: () => void;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ 
@@ -47,7 +49,8 @@ export const Layout: React.FC<LayoutProps> = ({
   clearNotification,
   onQuickAction,
   installPrompt,
-  onInstall
+  onInstall,
+  onShowHelp
 }) => {
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
@@ -194,6 +197,18 @@ export const Layout: React.FC<LayoutProps> = ({
           
           <NavButton target="settings" icon={RefreshCw} label="Settings" />
           <NavButton target="profile" icon={User} label="Profile" />
+          
+          {/* Help & Keyboard Shortcuts */}
+          {onShowHelp && (
+            <button 
+              onClick={onShowHelp}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-sm mb-1 text-slate-500 hover:bg-slate-100"
+              title="Keyboard Shortcuts (Shift + ?)"
+            >
+              <HelpCircle className="w-5 h-5" />
+              <span className="hidden md:inline">Help</span>
+            </button>
+          )}
 
           {/* Install App Button Desktop */}
           {installPrompt && (
