@@ -27,12 +27,15 @@ import { Settings } from './Settings';
 import { Profile } from './Profile';
 import { WorkOrderStage } from './WorkOrderStage';
 import { InvoiceStage } from './InvoiceStage';
-import { EstimateStage } from './EstimateStage'; // NEW IMPORT
+import { EstimateStage } from './EstimateStage';
 import { CrewDashboard } from './CrewDashboard';
 import { MaterialOrder } from './MaterialOrder';
 import { MaterialReport } from './MaterialReport';
 import { EstimateDetail } from './EstimateDetail';
 import { EquipmentTracker } from './EquipmentTracker';
+import { NetworkStatusBanner } from './NetworkStatusBanner';
+import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
+import { useKeyboardShortcuts, getDefaultShortcuts } from '../hooks/useKeyboardShortcuts';
 
 const SprayFoamCalculator: React.FC = () => {
   const { state, dispatch } = useCalculator();
@@ -43,6 +46,50 @@ const SprayFoamCalculator: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [autoTriggerCustomerModal, setAutoTriggerCustomerModal] = useState(false);
   const [initialDashboardFilter, setInitialDashboardFilter] = useState<'all' | 'work_orders'>('all');
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+
+  // Setup keyboard shortcuts
+  const shortcuts = getDefaultShortcuts({
+    onNewEstimate: () => {
+      if (session && ui.view !== 'calculator') {
+        resetCalculator();
+        dispatch({ type: 'SET_VIEW', payload: 'calculator' });
+      }
+    },
+    onDashboard: () => {
+      if (session) {
+        dispatch({ type: 'SET_VIEW', payload: 'dashboard' });
+      }
+    },
+    onCustomers: () => {
+      if (session) {
+        dispatch({ type: 'SET_VIEW', payload: 'customers' });
+      }
+    },
+    onWarehouse: () => {
+      if (session) {
+        dispatch({ type: 'SET_VIEW', payload: 'warehouse' });
+      }
+    },
+    onSettings: () => {
+      if (session) {
+        dispatch({ type: 'SET_VIEW', payload: 'settings' });
+      }
+    },
+    onHelp: () => {
+      setShowShortcutsHelp(true);
+    },
+    onSave: () => {
+      // Prevent default browser save dialog
+      if (session && ui.view === 'calculator') {
+        // Trigger save if in calculator view
+        dispatch({ type: 'SET_NOTIFICATION', payload: { type: 'success', message: 'Work saved locally' } });
+      }
+    }
+  });
+
+  // Only enable shortcuts when logged in
+  useKeyboardShortcuts(session ? shortcuts : []);
 
   // Handle PWA Installation Logic
   useEffect(() => {
@@ -327,6 +374,9 @@ const SprayFoamCalculator: React.FC = () => {
   }
 
   return (
+    <>
+    <NetworkStatusBanner />
+    <KeyboardShortcutsHelp isOpen={showShortcutsHelp} onClose={() => setShowShortcutsHelp(false)} />
     <Layout 
       userSession={session} 
       view={ui.view} 
@@ -339,10 +389,11 @@ const SprayFoamCalculator: React.FC = () => {
       onQuickAction={handleQuickAction}
       installPrompt={deferredPrompt}
       onInstall={handleInstallApp}
+      onShowHelp={() => setShowShortcutsHelp(true)}
     >
-        {/* Persistent Floating Install Icon */}
+        {/* Persistent Floating Install Icon - Hidden on mobile since it's in the nav */}
         {deferredPrompt && (
-          <div className="fixed bottom-6 right-6 z-[100] animate-in slide-in-from-bottom-10 fade-in duration-500">
+          <div className="hidden md:block fixed bottom-6 right-6 z-[100] animate-in slide-in-from-bottom-10 fade-in duration-500">
              <button 
                 onClick={handleInstallApp}
                 className="group flex items-center gap-3 bg-slate-900 text-white pl-4 pr-6 py-4 rounded-full shadow-2xl border-2 border-slate-700 hover:bg-brand hover:border-brand transition-all hover:scale-105 active:scale-95"
@@ -527,6 +578,7 @@ const SprayFoamCalculator: React.FC = () => {
             />
         )}
     </Layout>
+    </>
   );
 };
 
