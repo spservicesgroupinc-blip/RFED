@@ -1,0 +1,1 @@
+// This file is deprecated. Please use AuthScript.js and DataScript.js
