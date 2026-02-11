@@ -24,6 +24,10 @@ class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('[ErrorBoundary] Uncaught error:', error, errorInfo);
+    
+    // TODO: Add error reporting service integration (e.g., Sentry, LogRocket)
+    // Example: Sentry.captureException(error, { contexts: { react: { componentStack: errorInfo.componentStack } } });
+    
     this.setState({
       error,
       errorInfo

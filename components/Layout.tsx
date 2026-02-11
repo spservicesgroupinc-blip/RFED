@@ -279,7 +279,7 @@ export const Layout: React.FC<LayoutProps> = ({
       </main>
 
       {/* Mobile Bottom Nav */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around p-2 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around p-2 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] mobile-bottom-nav">
          <button onClick={() => setView('dashboard')} className={`flex flex-col items-center p-2 rounded-lg flex-1 ${view === 'dashboard' ? 'text-brand' : 'text-slate-400'}`}>
            <LayoutDashboard className="w-5 h-5" />
            <span className="text-[9px] font-bold mt-1">Dash</span>

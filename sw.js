@@ -15,7 +15,7 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('[Service Worker] Caching app shell');
-        return cache.addAll(URLS_TO_CACHE.filter(url => url !== OFFLINE_PAGE))
+        return cache.addAll(URLS_TO_CACHE)
           .catch((err) => {
             console.warn('[Service Worker] Some resources failed to cache:', err);
             // Continue anyway - the app might still work

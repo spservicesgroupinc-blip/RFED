@@ -91,7 +91,6 @@
           top: 0;
           left: 0;
           right: 0;
-          width: 100%;
           height: env(titlebar-area-height, 30px);
           z-index: 9999;
           -webkit-app-region: drag;
@@ -149,6 +148,11 @@
           animation-iteration-count: 1 !important;
           transition-duration: 0.01ms !important;
         }
+      }
+      
+      /* Mobile bottom navigation with safe area */
+      .mobile-bottom-nav {
+        padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
       }
     </style>
     <script type="importmap">
