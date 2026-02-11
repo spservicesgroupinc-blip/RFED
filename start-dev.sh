@@ -51,7 +51,7 @@ if [ ! -f ".env.local" ]; then
     fi
 else
     # Check if API key is set
-    if grep -q "GEMINI_API_KEY=$" .env.local || grep -q "GEMINI_API_KEY=your_gemini_api_key_here" .env.local; then
+    if grep -q "GEMINI_API_KEY=[[:space:]]*$" .env.local || grep -q "GEMINI_API_KEY=your_gemini_api_key_here" .env.local; then
         echo "⚠️  Warning: GEMINI_API_KEY appears to be empty or placeholder in .env.local"
         echo "Please set your actual API key from: https://aistudio.google.com/app/apikey"
         echo ""
