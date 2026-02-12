@@ -1,9 +1,9 @@
 
-const CACHE_NAME = 'rfe-foam-pro-v10-desktop';
+const CACHE_NAME = 'rfe-foam-pro-v11';
 const URLS_TO_CACHE = [
-  './index.html',
-  './manifest.json',
-  './'
+  '/',
+  '/index.html',
+  '/manifest.json'
 ];
 
 // Install Event: Cache critical app shell
@@ -49,7 +49,7 @@ self.addEventListener('fetch', (event) => {
             });
         })
         .catch(() => {
-          return caches.match('./index.html');
+          return caches.match('/index.html');
         })
     );
     return;

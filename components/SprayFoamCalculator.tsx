@@ -16,8 +16,7 @@ import { calculateResults } from '../utils/calculatorHelpers';
 import { generateEstimatePDF, generateDocumentPDF, generateWorkOrderPDF } from '../utils/pdfGenerator';
 import { syncUp } from '../services/api';
 
-import LoginPage from './LoginPage';
-import { LandingPage } from './LandingPage';
+import { logout as firebaseLogout, type User as FirebaseUser } from '../services/firebase';
 import { Layout } from './Layout';
 import { Calculator } from './Calculator';
 import { Dashboard } from './Dashboard';
@@ -34,11 +33,31 @@ import { MaterialReport } from './MaterialReport';
 import { EstimateDetail } from './EstimateDetail';
 import { EquipmentTracker } from './EquipmentTracker';
 
-const SprayFoamCalculator: React.FC = () => {
+interface SprayFoamCalculatorProps {
+  firebaseUser: FirebaseUser;
+}
+
+const SprayFoamCalculator: React.FC<SprayFoamCalculatorProps> = ({ firebaseUser }) => {
   const { state, dispatch } = useCalculator();
   const { appData, ui, session } = state;
   const { handleManualSync, forceRefresh } = useSync(); 
   const { loadEstimateForEditing, saveEstimate, handleDeleteEstimate, handleMarkPaid, saveCustomer, confirmWorkOrder, createPurchaseOrder } = useEstimates();
+
+  // Bootstrap session from Firebase user on mount
+  useEffect(() => {
+    if (firebaseUser && !session) {
+      const firebaseSession = {
+        username: firebaseUser.displayName || firebaseUser.email || 'User',
+        companyName: '',
+        spreadsheetId: '',
+        role: 'admin' as const,
+        token: firebaseUser.uid,
+      };
+      dispatch({ type: 'SET_SESSION', payload: firebaseSession });
+      dispatch({ type: 'SET_TRIAL_ACCESS', payload: true });
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, [firebaseUser, session, dispatch]);
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [autoTriggerCustomerModal, setAutoTriggerCustomerModal] = useState(false);
@@ -100,9 +119,10 @@ const SprayFoamCalculator: React.FC = () => {
 
   const results = useMemo(() => calculateResults(appData), [appData]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     dispatch({ type: 'LOGOUT' });
     localStorage.removeItem('foamProSession');
+    await firebaseLogout();
   };
 
   const resetCalculator = () => {
@@ -295,23 +315,10 @@ const SprayFoamCalculator: React.FC = () => {
       }
   };
 
-  if (!ui.hasTrialAccess && !session) {
-      return <LandingPage onEnterApp={() => dispatch({ type: 'SET_TRIAL_ACCESS', payload: true })} />;
+  // Wait for session to be bootstrapped from Firebase user
+  if (!session || ui.isLoading) {
+    return <div className="flex h-screen items-center justify-center text-slate-400 bg-slate-900"><Loader2 className="animate-spin mr-2"/> Initializing Enterprise Workspace...</div>;
   }
-
-  if (!session) {
-      return <LoginPage 
-          onLoginSuccess={(s) => { 
-              dispatch({ type: 'SET_SESSION', payload: s }); 
-              localStorage.setItem('foamProSession', JSON.stringify(s)); 
-              localStorage.setItem('foamProTrialAccess', 'true');
-          }} 
-          installPrompt={deferredPrompt}
-          onInstall={handleInstallApp}
-      />;
-  }
-
-  if (ui.isLoading) return <div className="flex h-screen items-center justify-center text-slate-400 bg-slate-900"><Loader2 className="animate-spin mr-2"/> Initializing Enterprise Workspace...</div>;
 
   if (session.role === 'crew') {
       return (

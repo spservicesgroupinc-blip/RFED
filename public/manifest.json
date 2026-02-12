@@ -4,13 +4,14 @@
   "short_name": "RFE Pro",
   "description": "Enterprise Spray Foam Estimation & Rig Management Suite",
   "id": "rfe-foam-pro-desktop",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "minimal-ui", "standalone"],
   "background_color": "#0F172A",
   "theme_color": "#0F172A",
   "orientation": "any",
+  "prefer_related_applications": false,
   "categories": ["business", "productivity", "utilities", "finance"],
   "launch_handler": {
     "client_mode": "focus-existing"
